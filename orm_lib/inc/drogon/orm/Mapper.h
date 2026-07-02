@@ -146,6 +146,13 @@ class Mapper
      * @param colName the column name, the results are sorted by that column
      * @param order Ascending or descending order
      * @return Mapper<T>& The Mapper itself.
+     *
+     * @warning The column name is concatenated directly into the SQL
+     * statement and cannot be bound as a parameter. Never pass an untrusted
+     * value (e.g. a "sort" query parameter) here without validating it against
+     * an allowlist of column names first, otherwise it becomes a SQL injection
+     * vector. Prefer the orderBy(size_t colIndex) overload when sorting by a
+     * client-selected column.
      */
     Mapper<T> &orderBy(const std::string &colName,
                        const SortOrder &order = SortOrder::ASC);
