@@ -423,7 +423,11 @@ class DROGON_EXPORT Cookie
     std::string key_;
     std::string value_;
     std::optional<int> maxAge_;
-    SameSite sameSite_{SameSite::kNull};
+    // Default to Lax so cookies carry a baseline CSRF defense out of the box
+    // (this also matches how modern browsers treat a cookie with no SameSite
+    // attribute). Set kNull explicitly to emit no SameSite attribute, or kNone
+    // for cross-site cookies.
+    SameSite sameSite_{SameSite::kLax};
 };
 
 }  // namespace drogon

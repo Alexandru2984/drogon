@@ -886,7 +886,7 @@ class DROGON_EXPORT HttpAppFramework : public trantor::NonCopyable
      */
     virtual HttpAppFramework &enableSession(
         const size_t timeout = 0,
-        Cookie::SameSite sameSite = Cookie::SameSite::kNull,
+        Cookie::SameSite sameSite = Cookie::SameSite::kLax,
         const std::string &cookieKey = "JSESSIONID",
         int maxAge = -1,
         std::function<std::string()> idGeneratorCallback = nullptr) = 0;
@@ -901,7 +901,7 @@ class DROGON_EXPORT HttpAppFramework : public trantor::NonCopyable
      */
     inline HttpAppFramework &enableSession(
         const std::chrono::duration<double> &timeout,
-        Cookie::SameSite sameSite = Cookie::SameSite::kNull,
+        Cookie::SameSite sameSite = Cookie::SameSite::kLax,
         const std::string &cookieKey = "JSESSIONID",
         int maxAge = -1,
         std::function<std::string()> idGeneratorCallback = nullptr)

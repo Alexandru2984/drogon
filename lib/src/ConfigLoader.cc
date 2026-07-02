@@ -267,7 +267,7 @@ static void loadApp(const Json::Value &app)
     if (enableSession)
     {
         auto timeout = app.get("session_timeout", 0).asUInt64();
-        auto sameSite = app.get("session_same_site", "Null").asString();
+        auto sameSite = app.get("session_same_site", "Lax").asString();
         auto cookieKey = app.get("session_cookie_key", "JSESSIONID").asString();
         auto maxAge = app.get("session_max_age", -1).asInt();
         drogon::app().enableSession(timeout,

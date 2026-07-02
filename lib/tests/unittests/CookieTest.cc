@@ -3,19 +3,22 @@
 
 DROGON_TEST(CookieTest)
 {
+    // Cookies default to SameSite=Lax (see Cookie::sameSite_ default).
     drogon::Cookie cookie1("test", "1");
-    CHECK(cookie1.cookieString() == "Set-Cookie: test=1; HttpOnly\r\n");
+    CHECK(cookie1.cookieString() ==
+          "Set-Cookie: test=1; SameSite=Lax; HttpOnly\r\n");
 
     drogon::Cookie cookie2("test", "2");
     cookie2.setSecure(true);
-    CHECK(cookie2.cookieString() == "Set-Cookie: test=2; Secure; HttpOnly\r\n");
+    CHECK(cookie2.cookieString() ==
+          "Set-Cookie: test=2; SameSite=Lax; Secure; HttpOnly\r\n");
 
     drogon::Cookie cookie3("test", "3");
     cookie3.setDomain("drogon.org");
     cookie3.setExpiresDate(trantor::Date(1621561557000000L));
     CHECK(cookie3.cookieString() ==
           "Set-Cookie: test=3; Expires=Fri, 21 May 2021 01:45:57 GMT; "
-          "Domain=drogon.org; HttpOnly\r\n");
+          "Domain=drogon.org; SameSite=Lax; HttpOnly\r\n");
 
     drogon::Cookie cookie4("test", "4");
     cookie4.setMaxAge(3600);
@@ -40,7 +43,7 @@ DROGON_TEST(CookieTest)
     drogon::Cookie cookie6("test", "6");
     cookie6.setPartitioned(true);
     CHECK(cookie6.cookieString() ==
-          "Set-Cookie: test=6; Secure; HttpOnly; Partitioned\r\n");
+          "Set-Cookie: test=6; SameSite=Lax; Secure; HttpOnly; Partitioned\r\n");
     // Test that partitioned attribute  automatically sets secure
     drogon::Cookie cookie7("test", "7");
     cookie7.setPartitioned(true);
@@ -51,8 +54,8 @@ DROGON_TEST(CookieTest)
     cookie8.setDomain("drogon.org");
     cookie8.setMaxAge(3600);
     CHECK(cookie8.cookieString() ==
-          "Set-Cookie: test=8; Max-Age=3600; Domain=drogon.org; Secure; "
-          "HttpOnly; Partitioned\r\n");
+          "Set-Cookie: test=8; Max-Age=3600; Domain=drogon.org; SameSite=Lax; "
+          "Secure; HttpOnly; Partitioned\r\n");
     // Teset Partitioned and SameSite can coexist
     drogon::Cookie cookie9("test", "9");
     cookie9.setPartitioned(true);

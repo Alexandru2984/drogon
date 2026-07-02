@@ -688,7 +688,7 @@ class HttpAppFrameworkImpl final : public HttpAppFramework
     // set sessionTimeout_=0 to make location session valid forever based on
     // cookies;
     size_t sessionTimeout_{0};
-    Cookie::SameSite sessionSameSite_{Cookie::SameSite::kNull};
+    Cookie::SameSite sessionSameSite_{Cookie::SameSite::kLax};
     std::string sessionCookieKey_{"JSESSIONID"};
     int sessionMaxAge_{-1};
     size_t idleConnectionTimeout_{60};
