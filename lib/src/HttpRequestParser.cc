@@ -28,6 +28,12 @@ using namespace drogon;
 static constexpr size_t CRLF_LEN = 2;            // strlen("crlf")
 static constexpr size_t METHOD_MAX_LEN = 7;      // strlen("OPTIONS")
 static constexpr size_t TRUNK_LEN_MAX_LEN = 16;  // 0xFFFFFFFF,FFFFFFFF
+// Upper bound on the number of header fields accepted in a single request.
+// Each header line is already capped at 64K, but without a count limit a
+// client could send an unbounded number of distinct headers and exhaust
+// memory. 100 matches the long-standing default of other servers (e.g.
+// Apache's LimitRequestFields) and is far above what legitimate requests use.
+static constexpr size_t HEADER_NUM_MAX = 100;
 
 HttpRequestParser::HttpRequestParser(const trantor::TcpConnectionPtr &connPtr)
     : status_(HttpRequestParseStatus::kExpectMethod),
@@ -118,6 +124,7 @@ void HttpRequestParser::reset()
 {
     assert(loop_->isInLoopThread());
     remainContentLength_ = 0;
+    currentHeaderNum_ = 0;
     status_ = HttpRequestParseStatus::kExpectMethod;
     if (requestsPool_.empty())
     {
@@ -210,6 +217,10 @@ int HttpRequestParser::parseRequest(MsgBuffer *buf)
                 // found colon
                 if (colon != crlf)
                 {
+                    if (++currentHeaderNum_ > HEADER_NUM_MAX)
+                    {
+                        return -k431RequestHeaderFieldsTooLarge;
+                    }
                     request_->addHeader(buf->peek(), colon, crlf);
                     buf->retrieveUntil(crlf + CRLF_LEN);
                     continue;
