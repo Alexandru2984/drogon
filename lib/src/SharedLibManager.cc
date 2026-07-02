@@ -21,6 +21,38 @@
 #include <trantor/utils/Logger.h>
 #include <unistd.h>
 
+namespace
+{
+// Quote a path so it is passed to system() as a single, inert argument.
+// These paths originate from watched view-source filenames, so an unquoted
+// path containing shell metacharacters would otherwise be interpreted by the
+// shell (command injection) and paths with spaces would break the command.
+std::string quoteShellArg(const std::string &arg)
+{
+#ifdef _WIN32
+    // cmd.exe treats metacharacters such as & | < > ^ literally inside double
+    // quotes, and a '"' cannot appear in a Windows path name, so double
+    // quoting is sufficient here.
+    return "\"" + arg + "\"";
+#else
+    // POSIX sh: wrap in single quotes and escape any embedded single quote as
+    // '\'' so nothing inside is interpreted.
+    std::string out;
+    out.reserve(arg.size() + 2);
+    out.push_back('\'');
+    for (char c : arg)
+    {
+        if (c == '\'')
+            out += "'\\''";
+        else
+            out.push_back(c);
+    }
+    out.push_back('\'');
+    return out;
+#endif
+}
+}  // namespace
+
 static void forEachFileIn(
     const std::string &path,
     const std::function<void(const std::string &, const struct stat &)> &cb)
@@ -156,13 +188,15 @@ void SharedLibManager::managerLibs()
                             std::string cmd = "drogon_ctl create view ";
                             if (!outputPath_.empty())
                             {
-                                cmd.append(filename).append(" -o ").append(
-                                    outputPath_);
+                                cmd.append(quoteShellArg(filename))
+                                    .append(" -o ")
+                                    .append(quoteShellArg(outputPath_));
                             }
                             else
                             {
-                                cmd.append(filename).append(" -o ").append(
-                                    libPath);
+                                cmd.append(quoteShellArg(filename))
+                                    .append(" -o ")
+                                    .append(quoteShellArg(libPath));
                             }
                             srcFile.append(".cc");
                             LOG_TRACE << cmd;
@@ -205,7 +239,7 @@ void *SharedLibManager::compileAndLoadLib(const std::string &sourceFile,
     LOG_TRACE << "src:" << sourceFile;
     std::string cmd = COMPILER_COMMAND;
     cmd.append(" ")
-        .append(sourceFile)
+        .append(quoteShellArg(sourceFile))
         .append(" ")
         .append(COMPILATION_FLAGS)
         .append(" ")
@@ -217,7 +251,7 @@ void *SharedLibManager::compileAndLoadLib(const std::string &sourceFile,
     auto pos = sourceFile.rfind('.');
     auto soFile = sourceFile.substr(0, pos);
     soFile.append(".so");
-    cmd.append(soFile);
+    cmd.append(quoteShellArg(soFile));
     LOG_TRACE << cmd;
 
     if (system(cmd.c_str()) == 0)
